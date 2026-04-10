@@ -4,146 +4,130 @@ import run from '../gemini';
 export const datacontext = createContext();
 
 function UserContext({ children }) {
-  let [speaking, setSpeaking] = useState(false);
-  let [prompt, setPrompt] = useState('listening...');
-  let [response, setResponse] = useState(false);
+  const [speaking, setSpeaking] = useState(false);
+  const [prompt, setPrompt] = useState('Click mic to speak...');
+  const [response, setResponse] = useState(false);
 
-  // Speak Function
+  // Speak function
   function speak(text) {
-    let text_speak = new SpeechSynthesisUtterance(text);
-    text_speak.volume = 1;
-    text_speak.rate = 1;
-    text_speak.pitch = 1;
-    text_speak.lang = 'hi-GB';
-    window.speechSynthesis.speak(text_speak);
+    const utter = new SpeechSynthesisUtterance(text);
+    utter.volume = 1;
+    utter.rate = 1;
+    utter.pitch = 1;
+    utter.lang = 'en-US';
+    window.speechSynthesis.speak(utter);
   }
 
-  // AI Response
-  async function aiResponse(prompt) {
-    let text = await run(prompt);
-    let newText =
-      text.split('**') &&
-      text.split('*') &&
-      text.replace('google', 'Abinash Nath Pandey') &&
-      text.replace('Google', 'Abinash Nath Pandey');
-    setPrompt(newText);
-    speak(newText);
-    setResponse(true);
-    setTimeout(() => {
+  // AI response
+  async function aiResponse(text) {
+    try {
+      let result = await run(text);
+
+      let cleanText = result
+        .replace(/\*\*/g, '')
+        .replace(/\*/g, '')
+        .replace(/google/gi, 'Abinash Nath Pandey');
+
+      setPrompt(cleanText);
+      speak(cleanText);
+      setResponse(true);
+
+      setTimeout(() => setSpeaking(false), 4000);
+    } catch (error) {
+      speak("Sorry, I couldn't process that.");
       setSpeaking(false);
-    }, 5000);
-  }
-
-  // Setup SpeechRecognition
-  let speechRecognition =
-    window.SpeechRecognition || window.webkitSpeechRecognition;
-
-  let recognition = new speechRecognition();
-  recognition.onresult = (e) => {
-    let currentIndex = e.resultIndex;
-    let transcript = e.results[currentIndex][0].transcript;
-    setPrompt(transcript);
-    takeCommand(transcript.toLowerCase());
-  };
-
-  // Take Command
-  function takeCommand(command) {
-    if (command.includes('open') && command.includes('youtube')) {
-      window.open('https://www.youtube.com/', '_blank');
-      speak('openning Youtube');
-      setResponse(true);
-      setPrompt('openning Youtube...');
-      setTimeout(() => {
-        setSpeaking(false);
-      }, 5000);
-    } else if (command.includes('open') && command.includes('google')) {
-      window.open('https://www.google.com/', '_blank');
-      speak('openning Google');
-      setResponse(true);
-      setPrompt('openning Google...');
-      setTimeout(() => {
-        setSpeaking(false);
-      }, 5000);
-    } else if (command.includes('open') && command.includes('Google')) {
-      window.open('https://www.google.com/', '_blank');
-      speak('openning Google');
-      setResponse(true);
-      setPrompt('openning Google...');
-      setTimeout(() => {
-        setSpeaking(false);
-      }, 5000);
-    } else if (command.includes('open') && command.includes('instagram')) {
-      window.open('https://www.instagram.com/', '_blank');
-      speak('openning Instagram');
-      setResponse(true);
-      setPrompt('openning Instagram...');
-      setTimeout(() => {
-        setSpeaking(false);
-      }, 5000);
-    } else if (command.includes('open') && command.includes('Instagram')) {
-      window.open('https://www.instagram.com/', '_blank');
-      speak('openning Instagram');
-      setResponse(true);
-      setPrompt('openning Instagram...');
-      setTimeout(() => {
-        setSpeaking(false);
-      }, 5000);
-    } else if (command.includes('open') && command.includes('facebook')) {
-      window.open('https://www.facebook.com/', '_blank');
-      speak('openning Facebook');
-      setResponse(true);
-      setPrompt('openning Facebook...');
-      setTimeout(() => {
-        setSpeaking(false);
-      }, 5000);
-    } else if (command.includes('open') && command.includes('Facebook')) {
-      window.open('https://www.facebook.com/', '_blank');
-      speak('openning Facebook');
-      setResponse(true);
-      setPrompt('openning Facebook...');
-      setTimeout(() => {
-        setSpeaking(false);
-      }, 5000);
-    } else if (command.includes('time')) {
-      let time = new Date().toLocaleDateString(undefined, {
-        hour: 'numeric',
-        minute: 'numeric',
-      });
-      speak(time);
-      setResponse(true);
-      setPrompt(time);
-      setTimeout(() => {
-        setSpeaking(false);
-      }, 5000);
-    } else if (command.includes('date')) {
-      let date = new Date().toLocaleString(undefined, {
-        day: 'numeric',
-        month: 'short',
-      });
-      speak(date);
-      setResponse(true);
-      setPrompt(date);
-      setTimeout(() => {
-        setSpeaking(false);
-      }, 5000);
-    } else {
-      aiResponse(command);
     }
   }
 
-  let value = {
+  // Speech Recognition Setup
+  const SpeechRecognition =
+    window.SpeechRecognition || window.webkitSpeechRecognition;
+
+  let recognition = null;
+
+  if (SpeechRecognition) {
+    recognition = new SpeechRecognition();
+    recognition.continuous = false;
+    recognition.interimResults = false;
+
+    recognition.onresult = (e) => {
+      let transcript = e.results[0][0].transcript;
+      setPrompt(transcript);
+      takeCommand(transcript.toLowerCase());
+    };
+  }
+
+  // Command Handler
+  function takeCommand(command) {
+    command = command.toLowerCase();
+
+    // NEW: Creator identity response
+    if (
+      command.includes('who created you') ||
+      command.includes('who invented you') ||
+      command.includes('who made you')
+    ) {
+      const msg = 'I am created by Abinash Nath Pandey';
+      setPrompt(msg);
+      speak(msg);
+      setResponse(true);
+      setTimeout(() => setSpeaking(false), 4000);
+      return;
+    }
+
+    // OPEN APPS
+    if (command.includes('open youtube')) {
+      window.open('https://youtube.com', '_blank');
+      speak('Opening YouTube');
+    } else if (command.includes('open google')) {
+      window.open('https://google.com', '_blank');
+      speak('Opening Google');
+    } else if (command.includes('open instagram')) {
+      window.open('https://instagram.com', '_blank');
+      speak('Opening Instagram');
+    } else if (command.includes('open facebook')) {
+      window.open('https://facebook.com', '_blank');
+      speak('Opening Facebook');
+    }
+    // TIME
+    else if (command.includes('time')) {
+      let time = new Date().toLocaleTimeString();
+      setPrompt(time);
+      speak(time);
+    }
+    // DATE
+    else if (command.includes('date')) {
+      let date = new Date().toLocaleDateString();
+      setPrompt(date);
+      speak(date);
+    }
+    // GOOGLE SEARCH
+    else {
+      const searchQuery = command.replace('search', '').trim();
+
+      window.open(
+        `https://www.google.com/search?q=${encodeURIComponent(searchQuery)}`,
+        '_blank',
+      );
+
+      speak(`Searching Google for ${searchQuery}`);
+    }
+
+    setResponse(true);
+    setTimeout(() => setSpeaking(false), 4000);
+  }
+
+  const value = {
     recognition,
     speaking,
     setSpeaking,
     prompt,
     setPrompt,
     response,
+    setResponse,
   };
-  return (
-    <div>
-      <datacontext.Provider value={value}>{children}</datacontext.Provider>
-    </div>
-  );
+
+  return <datacontext.Provider value={value}>{children}</datacontext.Provider>;
 }
 
 export default UserContext;

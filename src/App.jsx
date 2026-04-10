@@ -7,7 +7,7 @@ import speakimg from './assets/speak.gif';
 import aigif from './assets/aiVoice.gif';
 
 function App() {
-  let {
+  const {
     recognition,
     speaking,
     setSpeaking,
@@ -20,7 +20,7 @@ function App() {
   return (
     <div className="main">
       <img src={va} alt="robot" id="shifra" />
-      <span>Hi, I'm Shifra, Your Advance Virtual Assistant</span>
+      <span>Hi, I'm Shifra, Your Advanced Virtual Assistant</span>
 
       {!speaking ? (
         <button
@@ -28,7 +28,7 @@ function App() {
             setPrompt('Listening...');
             setSpeaking(true);
             setResponse(false);
-            recognition.start();
+            recognition && recognition.start();
           }}
         >
           Click Here <CiMicrophoneOn />

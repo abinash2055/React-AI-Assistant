@@ -1,25 +1,18 @@
-let apiKey = 'AIzaSyCBamKvTYs8kciZCk85HSc3q54KPCJARtM';
-// name = 'Gemini API Key';
-// project_name = 'projects/152664644800';
-// project_number = '152664644800';
+import { GoogleGenerativeAI } from '@google/generative-ai';
 
-import {
-  GoogleGenerativeAI,
-  HarmCategory,
-  HarmBlockThreshold,
-} from '@google/generative-ai';
+let apiKey = 'AIzaSyDQAV0qfrXOfyD1wjJkLogIbvPNbXX2WXM';
 
 const genAI = new GoogleGenerativeAI(apiKey);
 
 const model = genAI.getGenerativeModel({
-  model: 'gemini-1.5-flash-8b',
+  model: 'gemini-2.5-flash',
 });
 
 const generationConfig = {
   temperature: 1,
   topP: 0.95,
   topK: 40,
-  maxOutputTokens: 20,
+  maxOutputTokens: 30,
   responseMimeType: 'text/plain',
 };
 
